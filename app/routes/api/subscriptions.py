@@ -7,10 +7,10 @@ from datetime import datetime
 
 subscriptions_bp = Blueprint("subscriptions_api", __name__, url_prefix="/subscriptions")
 
-_, db = get_db_connection(Config)
-
 @subscriptions_bp.route("/", methods=["GET"])
 def list_subscriptions():
+    _, db = get_db_connection(Config)
+    
     subs = list(db.subscriptions.find({}))
     for sub in subs:
         sub["_id"] = str(sub["_id"])
@@ -19,6 +19,9 @@ def list_subscriptions():
 
 @subscriptions_bp.route("/", methods=["POST"])
 def create_subscription():
+    
+    _, db = get_db_connection(Config)
+    
     data = request.get_json()
     try:
         sub = SubscriptionModel(**data)
@@ -31,6 +34,8 @@ def create_subscription():
 
 @subscriptions_bp.route("/<string:sub_id>", methods=["PUT"])
 def update_subscription(sub_id):
+    
+    _, db = get_db_connection(Config)
     
     existing = db["subscriptions"].find_one({"_id": sub_id})
     if not existing:
@@ -52,6 +57,9 @@ def update_subscription(sub_id):
 
 @subscriptions_bp.route("/<string:sub_id>", methods=["DELETE"])
 def delete_subscription(sub_id):
+    
+    _, db = get_db_connection(Config)
+    
     res = db["subscriptions"].delete_one({"_id": sub_id})
     if res.deleted_count == 0:
         return jsonify({"error": "Subscription not found"}), 404

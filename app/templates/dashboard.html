@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messaging Platform Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- Header -->
+  <nav class="bg-blue-600 p-4 text-white text-xl font-semibold shadow">
+    Event-Driven Messaging Platform
+  </nav>
+
+  <!-- Main Content -->
+  <div class="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+    <!-- Upload Users -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-bold mb-2">Upload Users</h2>
+      <input type="file" id="userFile" class="mb-2">
+      <select id="fileType" class="border rounded p-1 mb-2">
+        <option value="csv">CSV</option>
+        <option value="json">JSON</option>
+      </select>
+      <button onclick="uploadUsers()" class="bg-blue-600 text-white px-4 py-2 rounded">Upload</button>
+      <pre id="uploadResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+    </div>
+
+    <!-- Upload JSONL Events -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-bold mb-2">Upload Trigger Events (JSONL)</h2>
+      <input type="file" id="jsonlFile" class="mb-2">
+      <button onclick="uploadEvents()" class="bg-purple-600 text-white px-4 py-2 rounded">Upload</button>
+      <pre id="eventResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+    </div>
+
+    <!-- Create Template -->
+<div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-lg font-bold mb-2">Create Template</h2>
+    <input id="templateName" type="text" placeholder="Template name" class="border w-full p-2 mb-2 rounded">
+    <textarea id="templateContent" rows="4" placeholder="Template content (e.g., Hello {{name}}!)" class="border w-full p-2 mb-2 rounded"></textarea>
+    <button onclick="createTemplate()" class="bg-green-600 text-white px-4 py-2 rounded">Save Template</button>
+    <pre id="templateResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+  </div>
+  
+  <!-- Create Segment -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-lg font-bold mb-2">Create Segment</h2>
+    <input id="segmentName" type="text" placeholder="Segment name" class="border w-full p-2 mb-2 rounded">
+    <input id="segmentTopic" type="text" placeholder="Segment topic (e.g., DANCE)" class="border w-full p-2 mb-2 rounded">
+    <textarea id="segmentRule" rows="3" placeholder='Segment rule JSON (e.g., {"topic":"DANCE"})' class="border w-full p-2 mb-2 rounded"></textarea>
+    <button onclick="createSegment()" class="bg-blue-600 text-white px-4 py-2 rounded">Save Segment</button>
+    <pre id="segmentResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+  </div>
+  
+  <!-- Create Campaign -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-lg font-bold mb-2">Create Campaign</h2>
+    <input id="campaignName" type="text" placeholder="Campaign name" class="border w-full p-2 mb-2 rounded">
+    
+    <label class="block mb-1 text-sm font-medium">Select Template</label>
+    <select id="templateSelect" class="border w-full p-2 mb-2 rounded"></select>
+  
+    <label class="block mb-1 text-sm font-medium">Select Segment</label>
+    <select id="segmentSelect" class="border w-full p-2 mb-2 rounded"></select>
+  
+    <input id="topic" type="text" placeholder="Topic (e.g., DANCE)" class="border w-full p-2 mb-2 rounded">
+  
+    <button onclick="createCampaign()" class="bg-purple-600 text-white px-4 py-2 rounded">Save Campaign</button>
+    <pre id="campaignResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+  </div>
+  
+
+    <!-- Run Campaign -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-bold mb-2">Run Campaign</h2>
+      <input id="campaignId" type="text" placeholder="Campaign ID" class="border w-full p-2 mb-2 rounded">
+      <button onclick="runCampaign()" class="bg-yellow-500 text-white px-4 py-2 rounded">Run</button>
+      <pre id="runResult" class="text-xs mt-2 bg-gray-50 p-2 rounded"></pre>
+    </div>
+
+    <!-- Inbound Messages -->
+    <div class="bg-white rounded-lg shadow p-4 col-span-1 md:col-span-2">
+      <h2 class="text-lg font-bold mb-2">Inbound Messages</h2>
+      <button onclick="loadInbound()" class="bg-blue-500 text-white px-4 py-2 rounded mb-2">Refresh</button>
+      <ul id="inboundList" class="text-sm max-h-72 overflow-y-auto bg-gray-50 rounded p-2"></ul>
+    </div>
+
+    <!-- Campaign Stats -->
+    <div class="bg-white rounded-lg shadow p-4 col-span-1 md:col-span-2 xl:col-span-1">
+      <h2 class="text-lg font-bold mb-2">Campaign Stats</h2>
+      <button onclick="loadStats()" class="bg-gray-700 text-white px-4 py-2 rounded mb-3">Refresh Stats</button>
+      <div id="statsBox" class="text-sm space-y-1">
+        <p>Total Users: <span id="statUsers">0</span></p>
+        <p>Opt-outs: <span id="statOptouts">0</span></p>
+        <p>Sent: <span id="statSent">0</span></p>
+        <p>Failed: <span id="statFailed">0</span></p>
+        <p>Delivery %: <span id="statDelivery">0</span>%</p>
+        <p>Failed %: <span id="statFailRate">0</span>%</p>
+      </div>
+      <canvas id="statsChart" class="mt-4"></canvas>
+    </div>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

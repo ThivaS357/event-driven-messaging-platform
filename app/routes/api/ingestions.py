@@ -73,6 +73,7 @@ def ingest_jsonl_events():
             continue
 
     resolved = []
+    triggered = 0
     for ev in events:
         rule = ev.get("segment_rule", {})
         topic = rule.get("topic")
@@ -87,6 +88,39 @@ def ingest_jsonl_events():
 
         ev["recipients"] = user_ids
         resolved.append(ev)
+        
+        campaign = db["campaigns"].find_one({"topic": topic, "status": "scheduled"})
+        if campaign:
+            from app.services.campaign_runner import run_campaign
+            run_campaign(campaign["_id"])
+            triggered += 1
+            
+        if resolved:
+            db["events_inbound"].insert_many(resolved)
 
-    db["events_inbound"].insert_many(resolved)
-    return jsonify({"message": "Events ingested", "count": len(resolved)}), 200
+    return jsonify({"message": "Events ingested", "count": len(resolved), "campaigns_triggered": triggered}), 200
+
+
+@ingestion_bp.route("/stats", methods=["GET"])
+def get_campaign_stats():
+    """
+    Returns delivery and user statistics for dashboard display.
+    """
+    total_users = db["users"].count_documents({})
+    opt_outs = db["users"].count_documents({"consent_state": "STOPPED"})
+    total_receipts = db["delivery_receipts"].count_documents({})
+    sent = db["delivery_receipts"].count_documents({"status": "SUCCESS"})
+    failed = db["delivery_receipts"].count_documents({"status": "ERROR"})
+
+    delivery_pct = (sent / total_receipts * 100) if total_receipts > 0 else 0
+    failed_pct = (failed / total_receipts * 100) if total_receipts > 0 else 0
+
+    return jsonify({
+        "total_users": total_users,
+        "opt_outs": opt_outs,
+        "sent": sent,
+        "failed": failed,
+        "delivery_pct": round(delivery_pct, 2),
+        "failed_pct": round(failed_pct, 2)
+    }), 200
+

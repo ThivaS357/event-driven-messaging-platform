@@ -7,10 +7,12 @@ from datetime import datetime
 
 campaigns_bp = Blueprint("campaigns_api", __name__, url_prefix="/campaigns")
 
-_, db = get_db_connection(Config)
 
 @campaigns_bp.route("/", methods=["GET"])
 def list_campaigns():
+    
+    _, db = get_db_connection(Config)
+    
     campaigns = list(db.campaigns.find({}))
     for campaign in campaigns:
         campaign["_id"] = str(campaign["_id"])
@@ -19,6 +21,9 @@ def list_campaigns():
 
 @campaigns_bp.route("/", methods=["POST"])
 def create_campaign():
+    
+    _, db = get_db_connection(Config)
+    
     data = request.get_json()
     try:
         campaign = CompaignModel(**data)
@@ -35,6 +40,8 @@ def create_campaign():
 
 @campaigns_bp.route("/<string:camp_id>", methods=["PUT"])
 def update_campaign(camp_id):
+    
+    _, db = get_db_connection(Config)
     
     existing = db["campaigns"].find_one({"_id": camp_id})
     if not existing:
@@ -55,6 +62,9 @@ def update_campaign(camp_id):
 
 @campaigns_bp.route("/<string:camp_id>", methods=["DELETE"])
 def delete_campaign(camp_id):
+    
+    _, db = get_db_connection(Config)
+    
     res = db["campaigns"].delete_one({"_id": camp_id})
     if res.deleted_count == 0:
         return jsonify({"error": "Campaign not found"}), 404

@@ -10,6 +10,7 @@ templates_bp = Blueprint("templates_api", __name__, url_prefix="/templates")
 
 @templates_bp.route("/", methods=["GET"])
 def list_templates():
+    """Lists all message templates."""
     _, db = get_db_connection(Config)
     
     if db is None:
@@ -22,6 +23,7 @@ def list_templates():
 
 @templates_bp.route("/", methods=["POST"])
 def create_template():
+    """Creates a new message template."""
     _, db = get_db_connection(Config)
     
     if db is None:
@@ -41,6 +43,7 @@ def create_template():
 
 @templates_bp.route("/<string:template_id>", methods=["PUT"])
 def update_template(template_id):
+    """Updates an existing template by its ID."""
     _, db = get_db_connection(Config)
     existing = db["templates"].find_one({"_id": ObjectId(template_id)})
     if not existing:
@@ -61,6 +64,7 @@ def update_template(template_id):
 
 @templates_bp.route("/<string:template_id>", methods=["DELETE"])
 def delete_template(template_id):
+    """Deletes a template by its ID."""
     _, db = get_db_connection(Config)
     res = db["templates"].delete_one({"_id": ObjectId(template_id)})
     if res.deleted_count == 0:

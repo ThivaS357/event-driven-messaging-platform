@@ -18,7 +18,7 @@ def inbound_message():
     body = data.get("Body", "").strip().upper()
     
     
-    normalized = {"command": None, "topic": None}
+    normalized = {"command": None, "topic": None} # To store the parsed command
     
     if body == "START":
         db["users"].update_one({"id": from_number}, {"$set": {"consent_state": "SUBSCRIBED"}}, upsert=True)
@@ -39,6 +39,7 @@ def inbound_message():
         normalized.update({"command": "UNSUBSCRIBE", "topic": topic})
         db["subscriptions"].delete_one({"user_id": from_number, "topic": topic})
 
+    # Log the inbound event to the database
     record = {
         "from": from_number,
         "body": data.get("Body", ""),
@@ -63,6 +64,7 @@ def message_status_callback():
     message_status = data.get("MessageStatus")
     error_code = data.get("ErrorCode")
 
+    # Record the status update for the given message SID
     record = {
         "message_sid": message_sid,
         "status": message_status,

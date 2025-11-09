@@ -12,6 +12,7 @@ users_bp = Blueprint('users_api', __name__, url_prefix='/users')
 
 @users_bp.route('/', methods=['GET'])
 def list_users():
+    """Lists all users."""
     _, db = get_db_connection(Config)
     users = list(db.users.find({}))
     
@@ -21,6 +22,7 @@ def list_users():
 
 @users_bp.route('/', methods=['POST'])
 def create_user():
+    """Creates a new user."""
     _, db = get_db_connection(Config)
     data = request.get_json()
     try:
@@ -36,6 +38,7 @@ def create_user():
 
 @users_bp.route("/<string:user_id>", methods=["PUT"])
 def update_user(user_id):
+    """Updates an existing user by their ID."""
     _, db = get_db_connection(Config)
     # Get existing record
     existing = db["users"].find_one({"id": user_id})
@@ -67,6 +70,7 @@ def update_user(user_id):
 
 @users_bp.route("/<string:user_id>", methods=["DELETE"])
 def delete_user(user_id):
+    """Deletes a user by their ID."""
     _, db = get_db_connection(Config)
     result = db["users"].delete_one({"id": user_id})
     if result.deleted_count == 0:

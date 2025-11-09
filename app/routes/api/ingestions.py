@@ -18,6 +18,7 @@ def ingest_users():
     if not file:
         return jsonify({"error": "No file provided"}), 400
 
+    # Determine file type and parse records
     filename = file.filename.lower()
     if filename.endswith(".csv"):
         records = list(csv.DictReader(io.StringIO(file.stream.read().decode("utf-8"))))
@@ -26,6 +27,7 @@ def ingest_users():
     else:
         return jsonify({"error": "Unsupported file format"}), 400
 
+    # Initialize a summary of the ingestion process
     summary = {
         "total": len(records),
         "valid": 0,
@@ -36,6 +38,7 @@ def ingest_users():
     }
 
     for record in records:
+        # Clean and validate each record using the Pydantic model
         try:
             cleaned_record = {str(k).strip().lstrip("\ufeff"): v for k, v in record.items()}
             
@@ -52,6 +55,7 @@ def ingest_users():
             summary["invalid"] += 1
             continue
 
+        # Check for existing user and merge/update or create new
         existing = db["users"].find_one({"$or":[{"id": user.id}, {"_id": user.id}]})
         if existing:
             existing.pop('_id', None)
@@ -76,6 +80,7 @@ def ingest_jsonl_events():
     if not file:
         return jsonify({"error": "No file provided"}), 400
 
+    # Read each line of the JSONL file as a separate JSON object
     events = []
     for line in file.stream:
         try:
@@ -84,6 +89,7 @@ def ingest_jsonl_events():
         except json.JSONDecodeError:
             continue
 
+    # Resolve recipients for each event based on segment rules
     resolved = []
     triggered = 0
     for ev in events:
@@ -101,6 +107,7 @@ def ingest_jsonl_events():
         ev["recipients"] = user_ids
         resolved.append(ev)
         
+        # If a scheduled campaign exists for the topic, trigger it
         campaign = db["campaigns"].find_one({"topic": topic, "status": "scheduled"})
         if campaign:
             from app.services.campaign_runner import run_campaign
@@ -135,4 +142,3 @@ def get_campaign_stats():
         "delivery_pct": round(delivery_pct, 2),
         "failed_pct": round(failed_pct, 2)
     }), 200
-

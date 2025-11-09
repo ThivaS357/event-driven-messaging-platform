@@ -10,6 +10,7 @@ segments_bp = Blueprint("segments_api", __name__, url_prefix="/segments")
 
 @segments_bp.route("/", methods=["GET"])
 def list_segments():
+    """Lists all segments."""
     _, db = get_db_connection(Config)
     segments = list(db.segments.find({}))
     for segment in segments:
@@ -18,6 +19,7 @@ def list_segments():
 
 @segments_bp.route("/", methods=["POST"])
 def create_segment():
+    """Creates a new segment."""
     _, db = get_db_connection(Config)
     data = request.get_json()
     try:
@@ -33,6 +35,7 @@ def create_segment():
 
 @segments_bp.route("/<string:segment_id>", methods=["PUT"])
 def update_segment(segment_id):
+    """Updates an existing segment by its ID."""
     _, db = get_db_connection(Config)
     existing = db["segments"].find_one({"_id": ObjectId(segment_id)})
     if not existing:
@@ -53,6 +56,7 @@ def update_segment(segment_id):
 
 @segments_bp.route("/<string:segment_id>", methods=["DELETE"])
 def delete_segment(segment_id):
+    """Deletes a segment by its ID."""
     _, db = get_db_connection(Config)
     res = db["segments"].delete_one({"_id": ObjectId(segment_id)})
     if res.deleted_count == 0:

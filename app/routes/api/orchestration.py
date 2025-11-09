@@ -8,5 +8,6 @@ def trigger_campaign(campaign_id):
     """
     Trigger a campaign run manually.
     """
+    # Calls the campaign runner service to start the campaign
     result = run_campaign(campaign_id)
     return jsonify(result), 200

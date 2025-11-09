@@ -7,6 +7,7 @@ from .routes import register_blueprints
 
 
 def create_app(config_class=Config):
+    """Creates and configures the Flask application."""
     app = Flask(__name__)
     app.config.from_object(config_class)
     
@@ -22,6 +23,7 @@ def create_app(config_class=Config):
         }
         Swagger(app, template_file='swagger.yml')
 
+    # Register all blueprints for the application
     register_blueprints(app)
     
 

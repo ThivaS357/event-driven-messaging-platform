@@ -4,6 +4,7 @@ from .webui import webui_bp
 
 
 def register_blueprints(app):
+    """Registers all the blueprints for the application."""
     app.register_blueprint(webhook_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(webui_bp)

@@ -11,6 +11,7 @@ campaigns_bp = Blueprint("campaigns_api", __name__, url_prefix="/campaigns")
 
 @campaigns_bp.route("/", methods=["GET"])
 def list_campaigns():
+    """Lists all campaigns."""
     
     _, db = get_db_connection(Config)
     
@@ -22,6 +23,7 @@ def list_campaigns():
 
 @campaigns_bp.route("/", methods=["POST"])
 def create_campaign():
+    """Creates a new campaign."""
     
     _, db = get_db_connection(Config)
     
@@ -41,6 +43,7 @@ def create_campaign():
 
 @campaigns_bp.route("/<string:camp_id>", methods=["PUT"])
 def update_campaign(camp_id):
+    """Updates an existing campaign by its ID."""
     
     _, db = get_db_connection(Config)
     
@@ -65,6 +68,7 @@ def update_campaign(camp_id):
 
 @campaigns_bp.route("/<string:camp_id>", methods=["DELETE"])
 def delete_campaign(camp_id):
+    """Deletes a campaign by its ID."""
     
     _, db = get_db_connection(Config)
     

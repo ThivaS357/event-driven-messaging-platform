@@ -9,6 +9,7 @@ subscriptions_bp = Blueprint("subscriptions_api", __name__, url_prefix="/subscri
 
 @subscriptions_bp.route("/", methods=["GET"])
 def list_subscriptions():
+    """Lists all subscriptions."""
     _, db = get_db_connection(Config)
     
     subs = list(db.subscriptions.find({}))
@@ -19,6 +20,7 @@ def list_subscriptions():
 
 @subscriptions_bp.route("/", methods=["POST"])
 def create_subscription():
+    """Creates a new subscription."""
     
     _, db = get_db_connection(Config)
     
@@ -34,6 +36,7 @@ def create_subscription():
 
 @subscriptions_bp.route("/<string:sub_id>", methods=["PUT"])
 def update_subscription(sub_id):
+    """Updates an existing subscription by its ID."""
     
     _, db = get_db_connection(Config)
     
@@ -57,6 +60,7 @@ def update_subscription(sub_id):
 
 @subscriptions_bp.route("/<string:sub_id>", methods=["DELETE"])
 def delete_subscription(sub_id):
+    """Deletes a subscription by its ID."""
     
     _, db = get_db_connection(Config)
     

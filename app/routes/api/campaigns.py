@@ -4,6 +4,7 @@ from app.data.models.compaign import CompaignModel
 from app.config import Config
 from pydantic import ValidationError
 from datetime import datetime
+from bson.objectid import ObjectId
 
 campaigns_bp = Blueprint("campaigns_api", __name__, url_prefix="/campaigns")
 
@@ -43,9 +44,11 @@ def update_campaign(camp_id):
     
     _, db = get_db_connection(Config)
     
-    existing = db["campaigns"].find_one({"_id": camp_id})
+    existing = db["campaigns"].find_one({"_id": ObjectId(camp_id)})
     if not existing:
         return jsonify({"error": "Campaign not found"}), 404
+    
+    existing.pop('_id', None)
     
     data = request.get_json()
     merged = {**existing, **data}
@@ -56,7 +59,7 @@ def update_campaign(camp_id):
     except ValidationError as e:
         return jsonify({"error": e.errors()}), 400
     
-    db["campaigns"].update_one({"_id": camp_id}, {"$set": campaign.model_dump(by_alias=True)})
+    db["campaigns"].update_one({"_id": ObjectId(camp_id)}, {"$set": campaign.model_dump(by_alias=True)})
     return jsonify({"message": "Campaign updated successfully"}), 200
 
 
@@ -65,7 +68,7 @@ def delete_campaign(camp_id):
     
     _, db = get_db_connection(Config)
     
-    res = db["campaigns"].delete_one({"_id": camp_id})
+    res = db["campaigns"].delete_one({"_id": ObjectId(camp_id)})
     if res.deleted_count == 0:
         return jsonify({"error": "Campaign not found"}), 404
     return jsonify({"message": "Campaign deleted successfully"}), 200

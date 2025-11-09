@@ -4,6 +4,7 @@ from app.data.models.template import TemplateModel
 from pydantic import ValidationError
 from datetime import datetime
 from app.config import Config
+from bson.objectid import ObjectId
 
 templates_bp = Blueprint("templates_api", __name__, url_prefix="/templates")
 
@@ -41,9 +42,11 @@ def create_template():
 @templates_bp.route("/<string:template_id>", methods=["PUT"])
 def update_template(template_id):
     _, db = get_db_connection(Config)
-    existing = db["templates"].find_one({"_id": template_id})
+    existing = db["templates"].find_one({"_id": ObjectId(template_id)})
     if not existing:
         return jsonify({"error": "Template not found"}), 404
+    
+    existing.pop('_id', None)
     
     data = request.get_json()
     merged = {**existing, **data, "updated_at": datetime.utcnow()}
@@ -53,13 +56,13 @@ def update_template(template_id):
     except ValidationError as e:
         return jsonify({"error": e.errors()}), 400
     
-    db["templates"].update_one({"_id": template_id}, {"$set": template.model_dump(by_alias=True)})
+    db["templates"].update_one({"_id": ObjectId(template_id)}, {"$set": template.model_dump(by_alias=True)})
     return jsonify({"message": "Template updated successfully"}), 200
 
 @templates_bp.route("/<string:template_id>", methods=["DELETE"])
 def delete_template(template_id):
     _, db = get_db_connection(Config)
-    res = db["templates"].delete_one({"_id": template_id})
+    res = db["templates"].delete_one({"_id": ObjectId(template_id)})
     if res.deleted_count == 0:
         return jsonify({"error": "Template not found"}), 404
     return jsonify({"message": "Template deleted successfully"}), 200

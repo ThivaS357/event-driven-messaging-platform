@@ -5,3 +5,6 @@ flasgger
 Flask-Cors
 python-dotenv
 twilio
+pytest
+pytest-mock
+mongomock

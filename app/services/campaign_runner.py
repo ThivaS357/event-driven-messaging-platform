@@ -11,9 +11,6 @@ from app.config import DevelopmentConfig as Config
 # Load .env environment variables
 load_dotenv()
 
-# Initialize MongoDB connection
-_, db = get_db_connection(Config)
-
 # Initialize Twilio client
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
@@ -56,6 +53,9 @@ def run_campaign(campaign_id: str, rate_limit: int = 50):
     - Sends WhatsApp messages via Twilio
     - Logs each delivery attempt in delivery_receipts
     """
+    # Get DB connection inside the function to allow for mocking in tests
+    _, db = get_db_connection(Config)
+
     # Fetch campaign
     campaign = db["campaigns"].find_one({"_id": ObjectId(campaign_id)})
     if not campaign:

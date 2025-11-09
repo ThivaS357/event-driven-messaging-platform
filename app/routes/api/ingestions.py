@@ -7,13 +7,13 @@ from datetime import datetime
 from pydantic import ValidationError
 
 ingestion_bp = Blueprint("ingestion_api", __name__, url_prefix="/ingestions")
-_, db = get_db_connection(Config)
 
 @ingestion_bp.route("/users", methods=["POST"])
 def ingest_users():
     """
     Upload a CSV or JSON user file for ingestion.
     """
+    _, db = get_db_connection(Config)
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "No file provided"}), 400
@@ -76,6 +76,7 @@ def ingest_jsonl_events():
     """
     Ingest a JSONL trigger events file and resolve segment recipients.
     """
+    _, db = get_db_connection(Config)
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "No file provided"}), 400
@@ -125,6 +126,7 @@ def get_campaign_stats():
     """
     Returns delivery and user statistics for dashboard display.
     """
+    _, db = get_db_connection(Config)
     total_users = db["users"].count_documents({})
     opt_outs = db["users"].count_documents({"consent_state": "STOPPED"})
     total_receipts = db["delivery_receipts"].count_documents({})

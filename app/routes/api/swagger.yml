@@ -19,6 +19,8 @@ tags:
     description: "Manage marketing campaigns"
   - name: Subscriptions
     description: "Manage user topic subscriptions"
+  - name: Templates
+    description: "Manage message templates"
   - name: Ingestion
     description: "Bulk data ingestion endpoints"
   - name: Orchestration
@@ -195,6 +197,62 @@ paths:
         404:
           description: "Subscription not found"
 
+  /templates/:
+    get:
+      tags: [Templates]
+      summary: "List all templates"
+      responses:
+        200:
+          description: "A list of templates."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Template"
+    post:
+      tags: [Templates]
+      summary: "Create a new template"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TemplateInput"
+      responses:
+        201:
+          description: "Template created successfully"
+        400:
+          description: "Invalid input"
+
+  /templates/{template_id}:
+    parameters:
+      - name: template_id
+        in: path
+        type: string
+        required: true
+        description: "ID of the template"
+    put:
+      tags: [Templates]
+      summary: "Update a template"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TemplateInput"
+      responses:
+        200:
+          description: "Template updated successfully"
+        404:
+          description: "Template not found"
+    delete:
+      tags: [Templates]
+      summary: "Delete a template"
+      responses:
+        200:
+          description: "Template deleted successfully"
+        404:
+          description: "Template not found"
+
   /ingestions/users:
     post:
       tags: [Ingestion]
@@ -361,3 +419,29 @@ definitions:
         type: string
       topic:
         type: string
+
+  Template:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the template."
+      content:
+        type: string
+        description: "The content of the message template, with placeholders."
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  TemplateInput:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the template."
+      content:
+        type: string
+        description: "The content of the message template, with placeholders."

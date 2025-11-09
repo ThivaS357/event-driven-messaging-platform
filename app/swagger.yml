@@ -1,0 +1,319 @@
+swagger: "2.0"
+info:
+  title: Event-Driven Messaging Platform API
+  description: API for managing users, campaigns, subscriptions, and message orchestration.
+  version: "1.0.0"
+host: "127.0.0.1:5000"
+basePath: /api/v1
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+tags:
+  - name: Users
+    description: "Operations about users"
+  - name: Campaigns
+    description: "Manage marketing campaigns"
+  - name: Subscriptions
+    description: "Manage user topic subscriptions"
+  - name: Ingestion
+    description: "Bulk data ingestion endpoints"
+  - name: Orchestration
+    description: "Trigger and manage campaign runs"
+  - name: Webhooks
+    description: "Twilio inbound and status webhooks"
+
+paths:
+  /users/:
+    get:
+      tags: [Users]
+      summary: "List all users"
+      responses:
+        200:
+          description: "A list of users."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/User"
+    post:
+      tags: [Users]
+      summary: "Create a new user"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/UserInput"
+      responses:
+        201:
+          description: "User created successfully"
+        400:
+          description: "Invalid input"
+
+  /users/{user_id}:
+    parameters:
+      - name: user_id
+        in: path
+        type: string
+        required: true
+        description: "User's phone number in E.164 format"
+    put:
+      tags: [Users]
+      summary: "Update an existing user"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/UserInput"
+      responses:
+        200:
+          description: "User updated successfully"
+        404:
+          description: "User not found"
+    delete:
+      tags: [Users]
+      summary: "Delete a user"
+      responses:
+        200:
+          description: "User deleted successfully"
+        404:
+          description: "User not found"
+
+  /campaigns/:
+    get:
+      tags: [Campaigns]
+      summary: "List all campaigns"
+      responses:
+        200:
+          description: "A list of campaigns."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Campaign"
+    post:
+      tags: [Campaigns]
+      summary: "Create a new campaign"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/Campaign"
+      responses:
+        201:
+          description: "Campaign created successfully"
+        400:
+          description: "Invalid input"
+
+  /campaigns/{campaign_id}:
+    parameters:
+      - name: campaign_id
+        in: path
+        type: string
+        required: true
+        description: "ID of the campaign"
+    put:
+      tags: [Campaigns]
+      summary: "Update a campaign"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/Campaign"
+      responses:
+        200:
+          description: "Campaign updated successfully"
+        404:
+          description: "Campaign not found"
+    delete:
+      tags: [Campaigns]
+      summary: "Delete a campaign"
+      responses:
+        200:
+          description: "Campaign deleted successfully"
+        404:
+          description: "Campaign not found"
+
+  /subscriptions/:
+    get:
+      tags: [Subscriptions]
+      summary: "List all subscriptions"
+      responses:
+        200:
+          description: "A list of subscriptions."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Subscription"
+    post:
+      tags: [Subscriptions]
+      summary: "Create a new subscription"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/SubscriptionInput"
+      responses:
+        201:
+          description: "Subscription created successfully"
+        400:
+          description: "Invalid input"
+
+  /subscriptions/{subscription_id}:
+    parameters:
+      - name: subscription_id
+        in: path
+        type: string
+        required: true
+        description: "ID of the subscription"
+    put:
+      tags: [Subscriptions]
+      summary: "Update a subscription"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/SubscriptionInput"
+      responses:
+        200:
+          description: "Subscription updated successfully"
+        404:
+          description: "Subscription not found"
+    delete:
+      tags: [Subscriptions]
+      summary: "Delete a subscription"
+      responses:
+        200:
+          description: "Subscription deleted successfully"
+        404:
+          description: "Subscription not found"
+
+  /ingestions/users:
+    post:
+      tags: [Ingestion]
+      summary: "Ingest users from a CSV or JSON file"
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: file
+          in: formData
+          type: file
+          required: true
+          description: "The user data file (CSV or JSON)"
+      responses:
+        200:
+          description: "Ingestion process completed"
+        400:
+          description: "No file or unsupported format"
+
+  /ingestions/events:
+    post:
+      tags: [Ingestion]
+      summary: "Ingest events from a JSONL file"
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: file
+          in: formData
+          type: file
+          required: true
+          description: "The events data file (JSONL)"
+      responses:
+        200:
+          description: "Events ingested successfully"
+        400:
+          description: "No file provided"
+
+  /orchestration/run/{campaign_id}:
+    post:
+      tags: [Orchestration]
+      summary: "Manually trigger a campaign to run"
+      parameters:
+        - name: campaign_id
+          in: path
+          type: string
+          required: true
+          description: "The ID of the campaign to run"
+      responses:
+        200:
+          description: "Campaign run initiated"
+
+definitions:
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "Phone number in E.164 format"
+      name:
+        type: string
+      attributes:
+        type: object
+      consent_state:
+        type: string
+        enum: ["STARTED", "STOPPED"]
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  UserInput:
+    type: object
+    required:
+      - _id
+    properties:
+      _id:
+        type: string
+        description: "Phone number in E.164 format"
+      name:
+        type: string
+      attributes:
+        type: object
+
+  Campaign:
+    type: object
+    properties:
+      _id:
+        type: string
+      topic:
+        type: string
+      template_id:
+        type: string
+      segment_id:
+        type: string
+      status:
+        type: string
+        enum: ["scheduled", "running", "paused", "completed"]
+
+  Subscription:
+    type: object
+    properties:
+      _id:
+        type: string
+      user_id:
+        type: string
+      topic:
+        type: string
+      subscribed_at:
+        type: string
+        format: date-time
+
+  SubscriptionInput:
+    type: object
+    required:
+      - user_id
+      - topic
+    properties:
+      user_id:
+        type: string
+      topic:
+        type: string

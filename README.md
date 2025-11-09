@@ -61,3 +61,11 @@ Before you begin, ensure you have the following installed:
     - You can use the same URL for the "STATUS CALLBACK URL" to receive message status updates.
 
 ![alt text](image.png)
+!alt text
+
+## Usage
+
+1.  **Run the Flask application:**
+    `flask run`
+2.  **API Documentation (Development Mode):**
+    When running in development mode, you can access the Swagger UI for API documentation and testing at: http://127.0.0.1:5000/apidocs/

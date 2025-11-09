@@ -93,3 +93,39 @@ Before you begin, ensure you have the following installed:
 3.  **Web Interface:**
     A minimal web UI is available to manage the platform at: http://127.0.0.1:5000/ui/
     From here, you can upload users, create templates and segments, define campaigns, and trigger them.
+
+## Running Tests
+
+This project uses `pytest` for unit and integration testing. The tests cover data model validation and an end-to-end workflow simulation from event ingestion to message status callback.
+
+1.  **Install Test Dependencies:**
+    The required testing libraries (`pytest`, `pytest-mock`, `mongomock`) are included in `requirements.txt`. If you haven't already, install them:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2.  **Execute Tests:**
+    To run the full test suite, navigate to the project's root directory and execute:
+    ```bash
+    pytest
+    ```
+
+### Additional Test Commands
+
+-   **Run in Verbose Mode:**
+    To see a detailed output with the name of each test function:
+    ```bash
+    pytest -v
+    ```
+
+-   **Run a Specific Test File:**
+    To run only the unit tests for the data models:
+    ```bash
+    pytest test_models.py
+    ```
+
+-   **Run Tests by Keyword:**
+    To run a specific test by matching a keyword in its name (e.g., the end-to-end test):
+    ```bash
+    pytest -k "test_e2e"
+    ```

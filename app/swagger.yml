@@ -19,6 +19,8 @@ tags:
     description: "Manage marketing campaigns"
   - name: Subscriptions
     description: "Manage user topic subscriptions"
+  - name: Templates
+    description: "Manage message templates"
   - name: Ingestion
     description: "Bulk data ingestion endpoints"
   - name: Orchestration
@@ -195,6 +197,62 @@ paths:
         404:
           description: "Subscription not found"
 
+  /templates/:
+    get:
+      tags: [Templates]
+      summary: "List all templates"
+      responses:
+        200:
+          description: "A list of templates."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Template"
+    post:
+      tags: [Templates]
+      summary: "Create a new template"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TemplateInput"
+      responses:
+        201:
+          description: "Template created successfully"
+        400:
+          description: "Invalid input"
+
+  /templates/{template_id}:
+    parameters:
+      - name: template_id
+        in: path
+        type: string
+        required: true
+        description: "ID of the template"
+    put:
+      tags: [Templates]
+      summary: "Update a template"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/TemplateInput"
+      responses:
+        200:
+          description: "Template updated successfully"
+        404:
+          description: "Template not found"
+    delete:
+      tags: [Templates]
+      summary: "Delete a template"
+      responses:
+        200:
+          description: "Template deleted successfully"
+        404:
+          description: "Template not found"
+
   /ingestions/users:
     post:
       tags: [Ingestion]
@@ -244,6 +302,50 @@ paths:
       responses:
         200:
           description: "Campaign run initiated"
+
+  /twilio/inbound:
+    post:
+      tags: [Webhooks]
+      summary: "Handle inbound WhatsApp messages from Twilio"
+      description: "Processes commands like START, STOP, SUBSCRIBE, and UNSUBSCRIBE."
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: From
+          in: formData
+          type: string
+          required: true
+          description: "The sender's WhatsApp number (e.g., whatsapp:+14155552671)."
+        - name: Body
+          in: formData
+          type: string
+          required: true
+          description: "The content of the incoming message."
+      responses:
+        200:
+          description: "Message processed successfully."
+
+  /twilio/status:
+    post:
+      tags: [Webhooks]
+      summary: "Handle message status updates from Twilio"
+      description: "Receives delivery status updates for outbound messages."
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: MessageSid
+          in: formData
+          type: string
+          required: true
+          description: "The unique ID of the message."
+        - name: MessageStatus
+          in: formData
+          type: string
+          required: true
+          description: "The status of the message (e.g., sent, delivered, failed)."
+      responses:
+        200:
+          description: "Status updated successfully."
 
 definitions:
   User:
@@ -315,5 +417,33 @@ definitions:
     properties:
       user_id:
         type: string
+      topic:
+        type: string
+
+  Template:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the template."
+      content:
+        type: string
+        description: "The content of the message template, with placeholders."
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  TemplateInput:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the template."
+      content:
+        type: string
+        description: "The content of the message template, with placeholders."
       topic:
         type: string

@@ -21,6 +21,8 @@ tags:
     description: "Manage user topic subscriptions"
   - name: Templates
     description: "Manage message templates"
+  - name: Segments
+    description: "Manage user segments"
   - name: Ingestion
     description: "Bulk data ingestion endpoints"
   - name: Orchestration
@@ -253,6 +255,62 @@ paths:
         404:
           description: "Template not found"
 
+  /segments/:
+    get:
+      tags: [Segments]
+      summary: "List all segments"
+      responses:
+        200:
+          description: "A list of segments."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Segment"
+    post:
+      tags: [Segments]
+      summary: "Create a new segment"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/SegmentInput"
+      responses:
+        201:
+          description: "Segment created successfully"
+        400:
+          description: "Invalid input"
+
+  /segments/{segment_id}:
+    parameters:
+      - name: segment_id
+        in: path
+        type: string
+        required: true
+        description: "ID of the segment"
+    put:
+      tags: [Segments]
+      summary: "Update a segment"
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/SegmentInput"
+      responses:
+        200:
+          description: "Segment updated successfully"
+        404:
+          description: "Segment not found"
+    delete:
+      tags: [Segments]
+      summary: "Delete a segment"
+      responses:
+        200:
+          description: "Segment deleted successfully"
+        404:
+          description: "Segment not found"
+
   /ingestions/users:
     post:
       tags: [Ingestion]
@@ -429,6 +487,38 @@ definitions:
       content:
         type: string
         description: "The content of the message template, with placeholders."
+
+  Segment:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the segment."
+      topic:
+        type: string
+        description: "The topic associated with this segment."
+      rule:
+        type: object
+        description: "The JSON rule defining the segment criteria."
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  SegmentInput:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: "The unique identifier for the segment."
+      topic:
+        type: string
+        description: "The topic associated with this segment."
+      rule:
+        type: object
+        description: "The JSON rule defining the segment criteria."
       created_at:
         type: string
         format: date-time

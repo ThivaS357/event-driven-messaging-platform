@@ -2,6 +2,7 @@ from datetime import datetime
 from time import sleep
 from app.data.database import get_db_connection
 from app.config import DevelopmentConfig as Config
+from bson.objectid import ObjectId
 
 # Initialize MongoDB connection
 _, db = get_db_connection(Config)
@@ -35,12 +36,12 @@ def render_template(template: str, context: dict) -> str:
 def run_campaign(campaign_id: str, rate_limit: int = 50):
     
     # Fetch campaign
-    campaign = db["campaigns"].find_one({"_id": campaign_id})
+    campaign = db["campaigns"].find_one({"_id": ObjectId(campaign_id)})
     if not campaign:
         return {"error": f"Campaign '{campaign_id}' not found."}
 
     # Fetch associated template
-    template = db["templates"].find_one({"_id": campaign["template_id"]})
+    template = db["templates"].find_one({"_id": ObjectId(campaign["template_id"])})
     if not template:
         return {"error": "Template not found for this campaign."}
 
@@ -55,7 +56,7 @@ def run_campaign(campaign_id: str, rate_limit: int = 50):
     total_sent = 0
 
     for uid in user_ids:
-        user = db["users"].find_one({"_id": uid})
+        user = db["users"].find_one({"_id": ObjectId(uid)})
         if not user:
             continue
 
@@ -125,7 +126,7 @@ def run_campaign(campaign_id: str, rate_limit: int = 50):
 
     # Finalize campaign
     db["campaigns"].update_one(
-        {"_id": campaign_id},
+        {"_id": ObjectId(campaign_id)},
         {"$set": {"status": "completed", "last_run": datetime.utcnow()}}
     )
 

@@ -4,3 +4,5 @@ pydantic
 flasgger
 Flask-Cors
 bson
+python-dotenv
+twilio

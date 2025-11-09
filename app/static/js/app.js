@@ -1,184 +1,202 @@
-// -----------------------------
-// Helper: Safe JSON Fetch
-// -----------------------------
-async function fetchJSON(url, opts = {}) {
-    const res = await fetch(url, opts);
-    return res.json();
-  }
-  
-  // -----------------------------
-  // Upload Users
-  // -----------------------------
-  async function uploadUsers() {
-    const file = document.getElementById("userFile").files[0];
-    if (!file) return alert("Select a file first!");
-    const formData = new FormData();
-    formData.append("file", file);
-  
-    const res = await fetch(`/ingestions/users`, {
-      method: "POST",
-      body: formData
-    });
-    const data = await res.json();
-    document.getElementById("uploadResult").textContent = JSON.stringify(data, null, 2);
-  }
-  
-  // -----------------------------
-  // Upload JSONL Events
-  // -----------------------------
-  async function uploadEvents() {
-    const file = document.getElementById("jsonlFile").files[0];
-    if (!file) return alert("Select a JSONL file!");
-    const formData = new FormData();
-    formData.append("file", file);
-  
-    const res = await fetch(`/ingestions/events`, { method: "POST", body: formData });
-    const data = await res.json();
-    document.getElementById("eventResult").textContent = JSON.stringify(data, null, 2);
-  }
-  
-  // -----------------------------
-  // Template CRUD
-  // -----------------------------
-  async function createTemplate() {
-    const body = {
-      name: document.getElementById("templateName").value,
-      content: document.getElementById("templateContent").value
-    };
-    const res = await fetch("/api/v1/templates/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    document.getElementById("templateResult").textContent = JSON.stringify(data, null, 2);
+document.addEventListener('DOMContentLoaded', function() {
+    // Load initial data when the page is ready
     loadTemplates();
-  }
-  
-  async function loadTemplates() {
-    const res = await fetch("/api/v1/templates/");
-    const data = await res.json();
-    const sel = document.getElementById("templateSelect");
-    sel.innerHTML = "";
-    data.forEach(t => {
-      const opt = document.createElement("option");
-      opt.value = t._id;
-      opt.textContent = t.name || t.content || t._id;
-      sel.appendChild(opt);
-    });
-  }
-  
-  // -----------------------------
-  // Segment CRUD
-  // -----------------------------
-  async function createSegment() {
-    const body = {
-      name: document.getElementById("segmentName").value,
-      topic: document.getElementById("segmentTopic").value,
-      rule: JSON.parse(document.getElementById("segmentRule").value || "{}")
-    };
-    const res = await fetch("/api/v1/segments/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    document.getElementById("segmentResult").textContent = JSON.stringify(data, null, 2);
     loadSegments();
-  }
-  
-  async function loadSegments() {
-    const res = await fetch("/api/v1/segments/");
-    const data = await res.json();
-    const sel = document.getElementById("segmentSelect");
-    sel.innerHTML = "";
-    data.forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s._id;
-      opt.textContent = s.name;
-      sel.appendChild(opt);
-    });
-  }
-  
-  // -----------------------------
-  // Campaign CRUD + Run
-  // -----------------------------
-  async function createCampaign() {
-    const body = {
-      name: document.getElementById("campaignName").value,
-      topic: document.getElementById("topic").value,
-      template_id: document.getElementById("templateSelect").value,
-      segment_id: document.getElementById("segmentSelect").value,
-      status: "scheduled"
+    loadInbound();
+    loadStats();
+});
+
+const API_BASE_URL = '/api/v1';
+
+/**
+ * Helper function to display results in a <pre> tag.
+ * @param {string} elementId - The ID of the <pre> element.
+ * @param {object} data - The JSON data to display.
+ * @param {boolean} isError - Whether the data represents an error.
+ */
+function showResult(elementId, data, isError = false) {
+    const el = document.getElementById(elementId);
+    el.textContent = JSON.stringify(data, null, 2);
+    el.className = isError 
+        ? 'text-xs mt-2 bg-red-50 p-2 rounded text-red-700' 
+        : 'text-xs mt-2 bg-gray-50 p-2 rounded';
+}
+
+async function uploadUsers() {
+    const fileInput = document.getElementById('userFile');
+    if (fileInput.files.length === 0) {
+        showResult('uploadResult', { error: 'Please select a file.' }, true);
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/ingestions/users`, {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await response.json();
+        showResult('uploadResult', result, !response.ok);
+    } catch (error) {
+        showResult('uploadResult', { error: error.message }, true);
+    }
+}
+
+async function uploadEvents() {
+    const fileInput = document.getElementById('jsonlFile');
+    if (fileInput.files.length === 0) {
+        showResult('eventResult', { error: 'Please select a file.' }, true);
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/ingestions/events`, {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await response.json();
+        showResult('eventResult', result, !response.ok);
+    } catch (error) {
+        showResult('eventResult', { error: error.message }, true);
+    }
+}
+
+async function createTemplate() {
+    const name = document.getElementById('templateName').value;
+    const content = document.getElementById('templateContent').value;
+
+    if (!name || !content) {
+        showResult('templateResult', { error: 'Template name and content are required.' }, true);
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/templates/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ _id: name, content: content }),
+        });
+        const result = await response.json();
+        showResult('templateResult', result, !response.ok);
+        if (response.ok) loadTemplates(); // Refresh dropdown
+    } catch (error) {
+        showResult('templateResult', { error: error.message }, true);
+    }
+}
+
+async function createSegment() {
+    const name = document.getElementById('segmentName').value;
+    const topic = document.getElementById('segmentTopic').value;
+    const ruleStr = document.getElementById('segmentRule').value;
+
+    if (!name || !topic || !ruleStr) {
+        showResult('segmentResult', { error: 'Segment name, topic, and rule are required.' }, true);
+        return;
+    }
+
+    try {
+        const rule = JSON.parse(ruleStr);
+        const response = await fetch(`${API_BASE_URL}/segments/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ _id: name, topic: topic, rule: rule }),
+        });
+        const result = await response.json();
+        showResult('segmentResult', result, !response.ok);
+        if (response.ok) loadSegments(); // Refresh dropdown
+    } catch (error) {
+        showResult('segmentResult', { error: 'Invalid JSON in rule or network error: ' + error.message }, true);
+    }
+}
+
+async function createCampaign() {
+    const campaignName = document.getElementById('campaignName').value;
+    const templateId = document.getElementById('templateSelect').value;
+    const segmentId = document.getElementById('segmentSelect').value;
+    const topic = document.getElementById('topic').value;
+
+    if (!campaignName || !templateId || !segmentId || !topic) {
+        showResult('campaignResult', { error: 'All fields are required to create a campaign.' }, true);
+        return;
+    }
+
+    const payload = {
+        _id: campaignName,
+        template_id: templateId,
+        segment_id: segmentId,
+        topic: topic,
     };
-  
-    const res = await fetch("/api/v1/campaigns/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    document.getElementById("campaignResult").textContent = JSON.stringify(data, null, 2);
-  }
-  
-  async function runCampaign() {
-    const id = document.getElementById("campaignId").value.trim();
-    if (!id) return alert("Enter campaign ID!");
-    const res = await fetch(`/api/v1/campaigns/run/${id}`, { method: "POST" });
-    const data = await res.json();
-    document.getElementById("runResult").textContent = JSON.stringify(data, null, 2);
-  }
-  
-  // -----------------------------
-  // Inbound Messages
-  // -----------------------------
-  async function loadInbound() {
-    const res = await fetch("/api/v1/events/inbound");
-    const data = await res.json();
-    const list = document.getElementById("inboundList");
-    list.innerHTML = "";
-    data.forEach(ev => {
-      const li = document.createElement("li");
-      li.textContent = `${ev.from}: ${ev.body || ""} (${ev.command || ""})`;
-      list.appendChild(li);
-    });
-  }
-  
-  // -----------------------------
-  // Stats Dashboard
-  // -----------------------------
-  let chart;
-  async function loadStats() {
-    const stats = await fetchJSON("/api/v1/ingestions/stats");
-  
-    document.getElementById("statUsers").textContent = stats.total_users;
-    document.getElementById("statOptouts").textContent = stats.opt_outs;
-    document.getElementById("statSent").textContent = stats.sent;
-    document.getElementById("statFailed").textContent = stats.failed;
-    document.getElementById("statDelivery").textContent = stats.delivery_pct;
-    document.getElementById("statFailRate").textContent = stats.failed_pct;
-  
-    const ctx = document.getElementById("statsChart");
-    const data = {
-      labels: ["Delivered %", "Failed %", "Opt-outs"],
-      datasets: [{
-        data: [
-          stats.delivery_pct,
-          stats.failed_pct,
-          (stats.opt_outs / stats.total_users * 100) || 0
-        ],
-        backgroundColor: ["#22c55e", "#ef4444", "#f59e0b"]
-      }]
-    };
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, { type: "pie", data });
-  }
-  
-  // -----------------------------
-  // Page Load Initialization
-  // -----------------------------
-  window.addEventListener("load", () => {
-    if (document.getElementById("templateSelect")) loadTemplates();
-    if (document.getElementById("segmentSelect")) loadSegments();
-  });
-  
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/campaigns/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const result = await response.json();
+        showResult('campaignResult', result, !response.ok);
+    } catch (error) {
+        showResult('campaignResult', { error: error.message }, true);
+    }
+}
+
+async function runCampaign() {
+    const campaignId = document.getElementById('campaignId').value;
+    if (!campaignId) {
+        showResult('runResult', { error: 'Campaign ID is required.' }, true);
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/orchestration/run/${campaignId}`, {
+            method: 'POST',
+        });
+        const result = await response.json();
+        showResult('runResult', result, !response.ok);
+    } catch (error) {
+        showResult('runResult', { error: error.message }, true);
+    }
+}
+
+async function loadTemplates() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/templates/`);
+        const templates = await response.json();
+        const select = document.getElementById('templateSelect');
+        select.innerHTML = '<option value="">-- Select a Template --</option>';
+        templates.forEach(t => {
+            select.innerHTML += `<option value="${t._id}">${t.content}</option>`;
+        });
+    } catch (error) {
+        console.error('Failed to load templates:', error);
+    }
+}
+
+async function loadSegments() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/segments/`);
+        const segments = await response.json();
+        const select = document.getElementById('segmentSelect');
+        select.innerHTML = '<option value="">-- Select a Segment --</option>';
+        segments.forEach(s => {
+            select.innerHTML += `<option value="${s._id}">${s.name}</option>`;
+        });
+    } catch (error) {
+        console.error('Failed to load segments:', error);
+    }
+}
+
+async function loadInbound() {
+    // This is a placeholder. You would need an API endpoint to fetch inbound messages.
+    const list = document.getElementById('inboundList');
+    list.innerHTML = '<li>Inbound message loading requires a dedicated API endpoint.</li>';
+}
+
+async function loadStats() {
+    // This is a placeholder. You would need an API endpoint to fetch stats.
+    const statsBox = document.getElementById('statsBox');
+    statsBox.innerHTML = '<p>Stats loading requires a dedicated API endpoint.</p>';
+}

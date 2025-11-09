@@ -3,3 +3,4 @@ pymongo
 pydantic
 flasgger
 Flask-Cors
+bson

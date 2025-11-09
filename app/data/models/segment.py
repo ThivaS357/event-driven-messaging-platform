@@ -3,8 +3,9 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 class SegmentModel(BaseModel):
-    id: str = Field(..., alias="_id")
+    _id: str
     topic: str
+    name: str
     rule: Dict[str, Any]
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

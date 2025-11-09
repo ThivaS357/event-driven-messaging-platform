@@ -63,7 +63,7 @@ async function fetchJSON(url, opts = {}) {
     data.forEach(t => {
       const opt = document.createElement("option");
       opt.value = t._id;
-      opt.textContent = t.name;
+      opt.textContent = t.name || t.content || t._id;
       sel.appendChild(opt);
     });
   }

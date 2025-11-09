@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
 from app.data.database import get_db_connection
+from app.config import Config
 import re
 
 webhook_bp = Blueprint('webhooks', __name__, url_prefix='/twilio')
@@ -11,7 +12,7 @@ def inbound_message():
     Twilio inbound WhatsApp message webhook.
     Handles START, STOP, SUBSCRIBE, and UNSUBSCRIBE commands.
     """
-    _, db = get_db_connection(current_app.config)
+    _, db = get_db_connection(Config)
     data = request.form.to_dict()
     from_number = data.get("From", "").replace("whatsapp:", "")
     body = data.get("Body", "").strip().upper()
@@ -20,10 +21,10 @@ def inbound_message():
     normalized = {"command": None, "topic": None}
     
     if body == "START":
-        db["users"].update_one({"_id": from_number}, {"$set": {"consent_state": "SUBSCRIBED"}}, upsert=True)
+        db["users"].update_one({"id": from_number}, {"$set": {"consent_state": "SUBSCRIBED"}}, upsert=True)
         normalized["command"] = "START"
     elif body == "STOP":
-        db["users"].update_one({"_id": from_number}, {"$set": {"consent_state": "STOPPED"}}, upsert=True)
+        db["users"].update_one({"id": from_number}, {"$set": {"consent_state": "STOPPED"}}, upsert=True)
         normalized["command"] = "STOP"
     elif body.startswith("SUBSCRIBE "):
         topic = body.split("SUBSCRIBE ", 1)[1]

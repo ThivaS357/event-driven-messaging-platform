@@ -38,9 +38,11 @@ def create_user():
 def update_user(user_id):
     _, db = get_db_connection(Config)
     # Get existing record
-    existing = db["users"].find_one({"_id": user_id})
+    existing = db["users"].find_one({"id": user_id})
     if not existing:
         return jsonify({"error": "User not found"}), 404
+    
+    existing.pop('_id', None)
 
     # Merge new fields into existing document
     data = request.get_json()
@@ -52,16 +54,21 @@ def update_user(user_id):
         user = UserModel(**merged)
     except ValidationError as e:
         return jsonify({"error": e.errors()}), 400
+    
+    update_data = user.model_dump(
+        by_alias=True,
+        exclude={"_id", "id"} # Explicitly tell Pydantic to exclude the key '_id'
+    )
 
     # Save validated data
-    db["users"].update_one({"_id": user_id}, {"$set": user.model_dump(by_alias=True)})
+    db["users"].update_one({"id": user_id}, {"$set": update_data})
 
     return jsonify({"message": "User updated successfully"}), 200
 
 @users_bp.route("/<string:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     _, db = get_db_connection(Config)
-    result = db["users"].delete_one({"_id": user_id})
+    result = db["users"].delete_one({"id": user_id})
     if result.deleted_count == 0:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"message": "User deleted successfully"}), 200

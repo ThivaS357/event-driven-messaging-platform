@@ -1,18 +1,17 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
 from app.data.database import get_db_connection
-from app.config import DevelopmentConfig as Config
 import re
 
 webhook_bp = Blueprint('webhooks', __name__, url_prefix='/twilio')
-_, db = get_db_connection(Config)
 
 @webhook_bp.route('/inbound', methods=['POST'])
-def inbond_message():
+def inbound_message():
     """
     Twilio inbound WhatsApp message webhook.
     Handles START, STOP, SUBSCRIBE, and UNSUBSCRIBE commands.
     """
+    _, db = get_db_connection(current_app.config)
     data = request.form.to_dict()
     from_number = data.get("From", "").replace("whatsapp:", "")
     body = data.get("Body", "").strip().upper()
@@ -57,6 +56,7 @@ def message_status_callback():
     Twilio status callback webhook for outbound message lifecycle.
     Tracks queued, sending, sent, delivered, read, failed, etc.
     """
+    _, db = get_db_connection(current_app.config)
     data = request.form.to_dict()
     message_sid = data.get("MessageSid")
     message_status = data.get("MessageStatus")

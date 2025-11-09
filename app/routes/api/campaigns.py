@@ -14,7 +14,7 @@ def list_campaigns():
     campaigns = list(db.campaigns.find({}))
     for campaign in campaigns:
         campaign["_id"] = str(campaign["_id"])
-    return jsonify(campaigns), 20
+    return jsonify(campaigns), 200
 
 
 @campaigns_bp.route("/", methods=["POST"])

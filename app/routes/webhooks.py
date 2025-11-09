@@ -57,7 +57,7 @@ def message_status_callback():
     Twilio status callback webhook for outbound message lifecycle.
     Tracks queued, sending, sent, delivered, read, failed, etc.
     """
-    _, db = get_db_connection(current_app.config)
+    _, db = get_db_connection(Config)
     data = request.form.to_dict()
     message_sid = data.get("MessageSid")
     message_status = data.get("MessageStatus")

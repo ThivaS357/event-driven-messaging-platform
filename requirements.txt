@@ -1,8 +1,7 @@
 Flask>=3.0.0
-pymongo
+pymongo==4.10.1
 pydantic
 flasgger
 Flask-Cors
-bson
 python-dotenv
 twilio

@@ -37,18 +37,30 @@ def ingest_users():
 
     for record in records:
         try:
-            user = UserModel(**record)
-        except ValidationError:
+            cleaned_record = {str(k).strip().lstrip("\ufeff"): v for k, v in record.items()}
+            
+            if "attributes" in cleaned_record and isinstance(cleaned_record["attributes"], str):
+                try:
+                    cleaned_record["attributes"] = json.loads(cleaned_record["attributes"])
+                except json.JSONDecodeError:
+                    cleaned_record["attributes"] = {}
+            
+            user = UserModel(**cleaned_record)
+        except ValidationError as e:
+            print("❌ Validation failed for record:", cleaned_record)
+            print("📋 Details:", e.errors())
             summary["invalid"] += 1
             continue
 
-        existing = db["users"].find_one({"_id": user.id})
+        existing = db["users"].find_one({"$or":[{"id": user.id}, {"_id": user.id}]})
         if existing:
-            merged = {**existing, **user.model_dump(by_alias=True), "updated_at": datetime.utcnow()}
-            db["users"].update_one({"_id": user.id}, {"$set": merged})
+            existing.pop('_id', None)
+            new_user_data = user.model_dump(by_alias=True, exclude={"_id","id"})
+            merged = {**existing, **new_user_data, "updated_at": datetime.utcnow()}
+            db["users"].update_one({"id": user.id}, {"$set": merged})
             summary["merged"] += 1
         else:
-            db["users"].insert_one(user.model_dump(by_alias=True))
+            db["users"].insert_one(user.dict())
             summary["new"] += 1
         summary["valid"] += 1
 
@@ -95,8 +107,8 @@ def ingest_jsonl_events():
             run_campaign(campaign["_id"])
             triggered += 1
             
-        if resolved:
-            db["events_inbound"].insert_many(resolved)
+    if resolved:
+        db["events_inbound"].insert_many(resolved)
 
     return jsonify({"message": "Events ingested", "count": len(resolved), "campaigns_triggered": triggered}), 200
 

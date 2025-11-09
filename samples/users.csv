@@ -1,0 +1,5 @@
+id,name,consent_state,wa_id,attributes
++94775912982,Thiva,STARTED,,{"city":"Colombo","age":30}
++94771234567,Amal,STARTED,,{"city":"Kandy","age":25}
++94770000001,Sahan,STOPPED,,{"city":"Jaffna","age":28}
++94776050505,Kavisha,STARTED,,{"city":"Negombo","age":32}

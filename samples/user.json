@@ -1,0 +1,26 @@
+[
+  {
+    "id": "+94775812982",
+    "name": "Thiva",
+    "consent_state": "STARTED",
+    "attributes": {"city": "Colombo", "age": 30}
+  },
+  {
+    "id": "+94771234567",
+    "name": "Amal",
+    "consent_state": "STARTED",
+    "attributes": {"city": "Kandy", "age": 25}
+  },
+  {
+    "id": "+94770000001",
+    "name": "Sahan",
+    "consent_state": "STOPPED",
+    "attributes": {"city": "Jaffna", "age": 28}
+  },
+  {
+    "id": "+94776050505",
+    "name": "Kavisha",
+    "consent_state": "STARTED",
+    "attributes": {"city": "Negombo", "age": 32}
+  }
+]
